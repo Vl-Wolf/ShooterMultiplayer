@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SH_Types.generated.h"
+#include "SM_Types.generated.h"
 
 UENUM(BlueprintType)
 enum ECharacterMovement
