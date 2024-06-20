@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MultiplayerGameMode.h"
-#include "MultiplayerCharacter.h"
+#include "Multiplayer/Character/MultiplayerCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AMultiplayerGameMode::AMultiplayerGameMode()
