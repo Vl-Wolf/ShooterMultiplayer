@@ -5,6 +5,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetArrayLibrary.h"
+#include "Multiplayer/Interfaces/PawnActions.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -45,10 +46,34 @@ USM_AC_InventorySystem::USM_AC_InventorySystem()
 
 void USM_AC_InventorySystem::OnRep_PrimaryWeapon()
 {
+	USkeletalMeshComponent* FPP_Mesh = nullptr;
+	USkeletalMeshComponent* TPP_Mesh = nullptr;
+
+	if (IPawnActions* PawnActions = Cast<IPawnActions>(GetOwner()))
+	{
+		PawnActions->GetPawnMeshes(FPP_Mesh, TPP_Mesh);
+	}
+	
+	AttachWeapon(PrimaryWeapon, FPP_Mesh, TPP_Mesh);
+
+	PrimaryWeapon->MeshFPP->SetVisibility(PrimaryWeapon == CurrentWeapon, true);
+	PrimaryWeapon->MeshTPP->SetVisibility(PrimaryWeapon == CurrentWeapon, true);
 }
 
 void USM_AC_InventorySystem::OnRep_SecondaryWeapon()
 {
+	USkeletalMeshComponent* FPP_Mesh = nullptr;
+	USkeletalMeshComponent* TPP_Mesh = nullptr;
+	
+	if (IPawnActions* PawnActions = Cast<IPawnActions>(GetOwner()))
+	{
+		PawnActions->GetPawnMeshes(FPP_Mesh, TPP_Mesh);
+	}
+
+	AttachWeapon(SecondaryWeapon, FPP_Mesh, TPP_Mesh);
+
+	SecondaryWeapon->MeshFPP->SetVisibility(SecondaryWeapon == CurrentWeapon, true);
+	SecondaryWeapon->MeshTPP->SetVisibility(SecondaryWeapon == CurrentWeapon, true);
 }
 
 void USM_AC_InventorySystem::OnRep_CurrentWeapon()

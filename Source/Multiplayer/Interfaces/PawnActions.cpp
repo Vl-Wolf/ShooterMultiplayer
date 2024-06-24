@@ -20,3 +20,47 @@ void IPawnActions::StopFiringWeapon()
 void IPawnActions::PawnTryReload()
 {
 }
+
+void IPawnActions::HideFPPMesh()
+{
+}
+
+void IPawnActions::ShowFPPMesh()
+{
+}
+
+void IPawnActions::HideTPPMesh()
+{
+}
+
+void IPawnActions::ShowTPPMesh()
+{
+}
+
+void IPawnActions::ShowLethalEquipment()
+{
+}
+
+void IPawnActions::HideLethalEquipment()
+{
+}
+
+void IPawnActions::PlayFPPEquipWeapon()
+{
+}
+
+void IPawnActions::PlayTPPEquipWeapon()
+{
+}
+
+void IPawnActions::HideWeapon()
+{
+}
+
+void IPawnActions::GetPawnMeshes(USkeletalMeshComponent* FPPMesh, USkeletalMeshComponent* TPPMesh)
+{
+}
+
+void IPawnActions::TryDropItems()
+{
+}

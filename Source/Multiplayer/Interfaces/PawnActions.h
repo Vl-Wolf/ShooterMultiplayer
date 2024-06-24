@@ -35,4 +35,37 @@ public:
 	UFUNCTION()
 	virtual void PawnTryReload();
 
+	UFUNCTION()
+	virtual void HideFPPMesh();
+
+	UFUNCTION()
+	virtual void ShowFPPMesh();
+
+	UFUNCTION()
+	virtual void HideTPPMesh();
+
+	UFUNCTION()
+	virtual void ShowTPPMesh();
+
+	UFUNCTION()
+	virtual void ShowLethalEquipment();
+
+	UFUNCTION()
+	virtual void HideLethalEquipment();
+
+	UFUNCTION()
+	virtual void PlayFPPEquipWeapon();
+
+	UFUNCTION()
+	virtual void PlayTPPEquipWeapon();
+
+	UFUNCTION()
+	virtual void HideWeapon();
+
+	UFUNCTION()
+	virtual void GetPawnMeshes(USkeletalMeshComponent* FPPMesh, USkeletalMeshComponent* TPPMesh);
+
+	UFUNCTION()
+	virtual void TryDropItems();
+
 };
