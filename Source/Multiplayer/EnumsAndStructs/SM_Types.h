@@ -32,7 +32,8 @@ enum EAmmoType
 	AssaultRifleType UMETA(DisplayName = "Assault Rifle"),
 	PistolType UMETA(DisplayName = "Pistol"),
 	SniperRifleType UMETA(DisplayName = "Sniper Rifle"),
-	ShotGunType UMETA(DisplayName = "ShotGun"),
+	ShotgunType UMETA(DisplayName = "ShotGun"),
+	NoneType UMETA(Display = "None")
 };
 
 UENUM(BlueprintType)

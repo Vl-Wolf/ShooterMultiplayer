@@ -27,12 +27,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Deafult")
 	USceneComponent* SceneComponent = nullptr;
 
+public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Deafult")
 	USkeletalMeshComponent* MeshFPP = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Deafult")
 	USkeletalMeshComponent* MeshTPP = nullptr;
 
+protected:
+	
 	UPROPERTY()
 	FOnAmmoChanged OnAmmoChanged;
 
@@ -108,12 +112,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Sound")
 	TSubclassOf<UCameraShakeBase> ImpactFleshSound = nullptr;
 
+public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	int32 AmmoPerMag = 30;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, ReplicatedUsing=OnRep_ActualAmmo, Category="Settings")
 	int32 ActualAmmo = 5;
 
+protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	float Damage = 50;
 
@@ -141,15 +149,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	float AimingSpread = 0.09f;
 
+public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	TEnumAsByte<EAmmoType> AmmoType = EAmmoType::AssaultRifleType;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category="Settings")
 	int32 PickupWeaponAmmo = 5;
-
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category="Settings")
 	bool InitialValues = true;
 
+protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	bool bHitScanBullets = true;
 
@@ -198,9 +210,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	float BurstFireRate = 0.07f;
 
+public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	TEnumAsByte<EEquippedWeapon> WeaponType = EEquippedWeapon::None;
 
+protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	FTransform FPP_WeaponOffsetTransform;
 

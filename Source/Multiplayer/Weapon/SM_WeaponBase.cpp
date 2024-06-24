@@ -37,7 +37,6 @@ ASM_WeaponBase::ASM_WeaponBase()
 void ASM_WeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ASM_WeaponBase::ReduceAmmo()
