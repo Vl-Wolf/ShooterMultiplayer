@@ -14,7 +14,7 @@ USM_AC_InventorySystem::USM_AC_InventorySystem()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-	WeaponAmmo[0].AmmoType = AssaultRifleType;
+	/*WeaponAmmo[0].AmmoType = AssaultRifleType;
 	WeaponAmmo[0].Count = 90;
 	WeaponAmmo[0].MaxCount = 120;
 
@@ -40,7 +40,7 @@ USM_AC_InventorySystem::USM_AC_InventorySystem()
 
 	LethalAmmo[1].LethalAmmoType = Claymore;
 	LethalAmmo[1].Count = 1;
-	LethalAmmo[1].MaxCount = 2;
+	LethalAmmo[1].MaxCount = 2;*/
 }
 
 
