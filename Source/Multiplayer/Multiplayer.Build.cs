@@ -6,7 +6,7 @@ public class Multiplayer : ModuleRules
 {
 	public Multiplayer(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "OnlineSubsystem" });
 		
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

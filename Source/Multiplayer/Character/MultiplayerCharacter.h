@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Multiplayer/ActorComponents/SM_AC_Health.h"
+#include "Multiplayer/ActorComponents/SM_AC_InventorySystem.h"
+#include "Multiplayer/ActorComponents/SM_AC_PawnInfo.h"
 #include "MultiplayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -14,6 +17,11 @@ class UInputAction;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStartFiring);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStopFiring);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDead);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPerspectiveChange);
 
 UCLASS(config=Game)
 class AMultiplayerCharacter : public ACharacter
@@ -43,8 +51,21 @@ class AMultiplayerCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
+	USkeletalMeshComponent* MeshFP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
+	USM_AC_Health* AC_Health;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
+	USM_AC_InventorySystem* Ac_InventorySystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
+	USM_AC_PawnInfo* Ac_PawnInfo;
 
 public:
+	
 	AMultiplayerCharacter();
 	
 
