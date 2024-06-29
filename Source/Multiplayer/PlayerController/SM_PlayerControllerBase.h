@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
 #include "GameFramework/PlayerController.h"
+#include "Multiplayer/ActorComponents/SM_AC_ControllerSettings.h"
 #include "SM_PlayerControllerBase.generated.h"
 
 /**
@@ -14,6 +15,10 @@ UCLASS()
 class MULTIPLAYER_API ASM_PlayerControllerBase : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+
+	ASM_PlayerControllerBase();
 
 protected:
 
@@ -30,6 +35,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Input", meta = (AllowPrivateAccess = true))
 	UInputMappingContext* ControllerMappingContext = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="ControllerSettings", meta=(AllowPrivateAccess = true))
+	USM_AC_ControllerSettings* ControllerSettings = nullptr;
 
 	
 };

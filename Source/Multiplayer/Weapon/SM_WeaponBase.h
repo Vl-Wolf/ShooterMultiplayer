@@ -128,6 +128,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	float FireRate = 0.1f;
 
+public:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	float WeaponRange = 75000.0f;
 
@@ -159,8 +161,7 @@ public:
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category="Settings")
 	bool InitialValues = true;
-
-protected:
+	
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	bool bHitScanBullets = true;
@@ -244,6 +245,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UAnimInstance* TPP_WeaponAnims = nullptr;
 
+public:
+	
 	UFUNCTION()
 	void ReduceAmmo();
 
@@ -264,13 +267,9 @@ protected:
 
 	UFUNCTION()
 	void OnInstantBulletHit(FHitResult& Hit, float DmgMultiplier, APawn* AAAInstigator);
-
-public:
-	
+		
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void PlayEffects(FHitResult Hit);
-
-protected:
 	
 	UFUNCTION()
 	void CreateCompassMarker();
@@ -298,13 +297,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayImpactEffects(const FHitResult& HitResult);
-
-public:
 	
 	UFUNCTION(Server, Reliable)
 	void Server_PlayImpactEffects(const FHitResult& HitResult);
-
-protected:
 	
 	UFUNCTION(Server, Reliable)
 	void Server_PlayShootEffects();

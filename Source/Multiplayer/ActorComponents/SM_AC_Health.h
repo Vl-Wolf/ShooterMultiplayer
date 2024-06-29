@@ -60,6 +60,8 @@ protected:
 	UPROPERTY()
 	FOnHealthChanged OnHealthChanged;
 
+public:
+	
 	UFUNCTION()
 	virtual void OnRep_Health();
 
@@ -116,6 +118,8 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void Server_KillPawn();
+
+private:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	

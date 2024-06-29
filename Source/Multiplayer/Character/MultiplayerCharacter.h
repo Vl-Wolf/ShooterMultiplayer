@@ -59,10 +59,10 @@ class AMultiplayerCharacter : public ACharacter
 	USM_AC_Health* AC_Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
-	USM_AC_InventorySystem* Ac_InventorySystem;
+	USM_AC_InventorySystem* AC_InventorySystem;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components", meta = (AllowPrivateAccess))
-	USM_AC_PawnInfo* Ac_PawnInfo;
+	USM_AC_PawnInfo* AC_PawnInfo;
 
 public:
 	
@@ -83,12 +83,139 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 public:
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+private:
+
+	//UPROPERTY()
+	FVector SpringArmInitialLocation = FVector::Zero();
+
+	float InterpSpeed = 0.0f;
+
+	float PitchAcum = 0.0f;
+	float YawAcum = 0.0f;
+
+	UFUNCTION()
+	void AddRecoil();
+
+	UFUNCTION()
+	void SetPOV();
+
+	float CurrentFOV = 90.0f;
+	float TargetFOV = 0.0f;
+
+	UFUNCTION()
+	float MovementRecoil(ASM_WeaponBase* Weapon);
+
+	bool bIsFirstShot = false;
+
+	UFUNCTION()
+	void SetWeaponVisibility(ASM_WeaponBase* Weapon, bool Visible);
+
+	UFUNCTION()
+	void SetShooting(bool bShooting);
+	
+	UFUNCTION()
+	void StopShooting();
+
+	FTimerHandle AutoShootTimerHandle;
+
+	UFUNCTION()
+	void TryRun();
+
+	UFUNCTION()
+	void AddRecoilPitch();
+
+	float ActualPitch = 0.0f;
+	
+	UFUNCTION()
+	void ResetRecoil();
+
+	UFUNCTION()
+	void AddRecoilYaw();
+
+	float ActualYaw = 0.0f;
+	
+	UFUNCTION()
+	void AdjustCamera(float Input);
+
+	UFUNCTION()
+	void OnDamageTaken(float Damage, UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
+
+	UFUNCTION()
+	void MeleeAttack();
+
+	float MeleeAttackRange = 150.0f;
+
+	UFUNCTION()
+	void OnDead(AActor* DeadActor, AController* InstigatorController, UDamageType* DamageType, AActor* DamageCauser);
+	
+	UPROPERTY()
+	bool bIsWantsToRun = false;
+
+	float DefaultFOV = 90.0f;
+
+	UFUNCTION()
+	void OnTurn(float Input);
+
+	UFUNCTION()
+	void OnLookUp(float Input);
+
+	float ReduceAimingSensitivity(float Input, float MouseSensitivity, float AimSensitivity);
+
+	UFUNCTION()
+	void OnMoveForward(float Input);
+
+	float InputValue = 0.0f;
+	
+	UFUNCTION()
+	void OnMoveRight(float Input);
+
+	UFUNCTION()
+	void UpdatePerspective();
+
+	UFUNCTION()
+	void ChangeFiringMode();
+
+	bool bIsCanShoot = false;
+	bool bIsFiringBurst = false;
+	bool bIsPerformingAction = false;
+	bool bIsChangingWeapon = false;
+	bool bIsFireEnabled = false;
+
+	UFUNCTION()
+	void PawnDeath();
+
+	UFUNCTION()
+	void UpdateArmsVisibility();
+
+	UFUNCTION()
+	void UpdateSpringArmPosition();
+
+	float TPPSpringArmLength = 150.0f;
+
+	UFUNCTION()
+	void ResetCollision();
+
+	UFUNCTION()
+	void HealPlayer(float HealAmount, AController* HealInstigator);
+	
+	float HealAmount = 0.0f;
+
+	UFUNCTION()
+	void DamagePlayer(float Damage, UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
+
+	float TakeDamage(float DamageAmount, AController* ControllerInstigator);
+
+	void HandleDeath(AActor* Dead_Actor, AController* InstigatorController, UDamageType* DmgType, AActor* DamageCauser);
+
+	UFUNCTION()
+	void ShowWeapon();
 };
 

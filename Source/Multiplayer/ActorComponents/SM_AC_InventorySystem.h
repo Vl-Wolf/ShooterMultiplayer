@@ -21,9 +21,7 @@ class MULTIPLAYER_API USM_AC_InventorySystem : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	USM_AC_InventorySystem();
-
-protected:
-
+	
 	UPROPERTY()
 	FOnWeaponEquipped OnWeaponEquipped;
 
@@ -42,9 +40,11 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_SecondaryWeapon)
 	ASM_WeaponBase* SecondaryWeapon = nullptr;
 
+public:
+	
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	ASM_WeaponBase* CurrentWeapon = nullptr;
-
+	
 	UPROPERTY()
 	ASM_WeaponBase* PreviousWeapon = nullptr;
 
@@ -57,6 +57,8 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_LethalAmmo)
 	TArray<FLethalAmmo> LethalAmmo;
 
+public:
+	
 	UFUNCTION()
 	virtual void OnRep_PrimaryWeapon();
 
@@ -158,8 +160,10 @@ protected:
 	UFUNCTION()
 	void DestroyWeapons();
 
+private:
+	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+		
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 };

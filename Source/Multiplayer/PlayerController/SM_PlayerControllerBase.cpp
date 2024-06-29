@@ -4,9 +4,12 @@
 #include "SM_PlayerControllerBase.h"
 
 #include "EnhancedInputSubsystems.h"
-#include "OnlineSubsystem.h"
 #include "GameFramework/Character.h"
-#include "Net/Subsystems/NetworkSubsystem.h"
+
+ASM_PlayerControllerBase::ASM_PlayerControllerBase()
+{
+	ControllerSettings = CreateDefaultSubobject<USM_AC_ControllerSettings>(TEXT("ControllerSettings"));
+}
 
 void ASM_PlayerControllerBase::OnPossess(APawn* InPawn)
 {
