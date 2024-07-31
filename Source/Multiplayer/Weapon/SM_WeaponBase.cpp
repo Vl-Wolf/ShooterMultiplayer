@@ -313,7 +313,7 @@ void ASM_WeaponBase::LocalPlayEffects()
 	if (Character->GetPlayerState())
 	{
 		//!Character->GetPlayerState()->bIsABot;
-		if (!Character->GetPlayerState()->bIsABot)
+		if (!Character->GetPlayerState()->IsABot())
 		{
 			PlayWeaponShotAnimation();
 			PlayWeaponFireSound();
@@ -492,7 +492,7 @@ void ASM_WeaponBase::ClientSideHitReg(float Spread)
 		if (Character)
 			if (Character->GetPlayerState())
 				//!Character->GetPlayerState()->bIsABot
-				if (!Character->GetPlayerState()->bIsABot)
+				if (!Character->GetPlayerState()->IsABot())
 					PlayShootShake();
 	}
 	else
@@ -523,7 +523,7 @@ void ASM_WeaponBase::ClientSideHitReg(float Spread)
 		if (Character)
 			if (Character->GetPlayerState())
 				//!Character->GetPlayerState()->bIsABot
-				if (!Character->GetPlayerState()->bIsABot)
+				if (!Character->GetPlayerState()->IsABot())
 					PlayShootShake();
 	}
 }

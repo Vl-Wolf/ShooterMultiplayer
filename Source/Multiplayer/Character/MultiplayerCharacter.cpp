@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Engine/DamageEvents.h"
+#include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -50,7 +52,7 @@ AMultiplayerCharacter::AMultiplayerCharacter()
 	CameraBoom->TargetArmLength = 400.0f;
 	CameraBoom->bUsePawnControlRotation = true;
 	SpringArmInitialLocation = CameraBoom->GetRelativeLocation();
-	MeshFP->HideBoneByName(FName("head"), PBO_None);
+	//MeshFP->HideBoneByName(FName("head"), PBO_None);
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -71,6 +73,26 @@ void AMultiplayerCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+}
+
+void AMultiplayerCharacter::Tick(float DeltaSeconds)
+{
+	if (IsLocallyControlled())
+	{
+		AddRecoil();
+		AddRecoilYaw();
+	}
+
+	if (HasAuthority())
+	{
+		if (GetPlayerState())
+		{
+			if (GetPlayerState()->IsABot())
+			{
+				GetMovementSpeed();
+			}	
 		}
 	}
 }
@@ -106,7 +128,8 @@ void AMultiplayerCharacter::AddRecoil()
 
 void AMultiplayerCharacter::SetPOV()
 {
-	if (!FMath::Abs(CurrentFOV - TargetFOV) < 0.1f)
+	
+	if (!(FMath::Abs(CurrentFOV - TargetFOV) < 0.1f))
 	{
 		if (AC_InventorySystem->CurrentWeapon)
 		{
@@ -123,7 +146,7 @@ float AMultiplayerCharacter::MovementRecoil(ASM_WeaponBase* Weapon)
 {
 	float Spread = 0.0f;
 
-	if (!GetController()->PlayerState->bIsABot)
+	if (!GetController()->PlayerState->IsABot())
 	{
 		if (AC_PawnInfo->GetAiming())
 		{
@@ -192,6 +215,7 @@ void AMultiplayerCharacter::SetWeaponVisibility(ASM_WeaponBase* Weapon, bool Vis
 
 void AMultiplayerCharacter::SetShooting(bool bShooting)
 {
+	// Server SetShooting
 }
 
 void AMultiplayerCharacter::StopShooting()
@@ -312,7 +336,7 @@ void AMultiplayerCharacter::OnDead(AActor* DeadActor, AController* InstigatorCon
 
 	GetWorld()->GetTimerManager().PauseTimer(AutoShootTimerHandle);
 
-	ACharacter Character* = Cast<ACharacter>(DeadActor);
+	ACharacter* Character = Cast<ACharacter>(DeadActor);
 
 	Character->GetCharacterMovement()->DisableMovement();
 
@@ -396,7 +420,7 @@ void AMultiplayerCharacter::OnLookUp(float Input)
 			}
 			else
 			{
-				if (!PitchAcum > 0.0f)
+				if (!(PitchAcum > 0.0f))
 				{
 					PitchAcum += Value;
 				}
@@ -540,13 +564,13 @@ void AMultiplayerCharacter::ResetCollision()
 	SetActorEnableCollision(true);
 }
 
-void AMultiplayerCharacter::HealPlayer(float HealAmount, AController* HealInstigator)
+void AMultiplayerCharacter::HealPlayer(float NeedHealAmount, AController* HealInstigator)
 {
 	float HPToHeal = 0.0f;
 	
-	if (HealAmount <= AC_Health->GetMaxHealth() - AC_Health->GetHealth())
+	if (NeedHealAmount <= AC_Health->GetMaxHealth() - AC_Health->GetHealth())
 	{
-		HPToHeal = HealAmount;
+		HPToHeal = NeedHealAmount;
 	}
 	else
 	{
@@ -570,8 +594,10 @@ void AMultiplayerCharacter::DamagePlayer(float Damage, UDamageType* DamageType, 
 	if (!AC_Health->IsDead())
 	{
 		// Play Hit
+
+		FDamageEvent DamageEvent;
 		
-		float DamageToDo = TakeDamage(Damage, InstigatorController);
+		float DamageToDo = TakeDamage(Damage, DamageEvent, InstigatorController, DamageCauser);
 
 		if (DamageToDo > 0.0f)
 		{
@@ -597,9 +623,32 @@ void AMultiplayerCharacter::DamagePlayer(float Damage, UDamageType* DamageType, 
 	}
 }
 
-float AMultiplayerCharacter::TakeDamage(float DamageAmount, AController* ControllerInstigator)
+float AMultiplayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	
+	float DmgToDo = DamageAmount;
+	bool bIsSelfInflicted = EventInstigator == GetController();
+
+	//Add logic
+	if (EventInstigator)
+	{
+		if (!bIsSelfInflicted)
+		{
+			
+		}
+
+		if (bIsSelfInflicted)
+		{
+			AC_Health->HandleDamage(DmgToDo);
+		}
+		else
+		{
+			// Hit Marker
+		}
+
+		return DmgToDo;
+	}
+
+	return 0.0f;
 }
 
 void AMultiplayerCharacter::HandleDeath(AActor* Dead_Actor, AController* InstigatorController, UDamageType* DmgType,
@@ -609,7 +658,424 @@ void AMultiplayerCharacter::HandleDeath(AActor* Dead_Actor, AController* Instiga
 
 void AMultiplayerCharacter::ShowWeapon()
 {
+	if (AC_InventorySystem->CurrentWeapon)
+	{
+		USM_AC_ControllerSettings* ControllerSettings = Cast<USM_AC_ControllerSettings>(GetController()->GetComponentByClass(USM_AC_ControllerSettings::StaticClass()));
+		if (ControllerSettings)
+		{
+			AC_InventorySystem->CurrentWeapon->UpdateWeaponVisibility(ControllerSettings->GetUseTPP());
+		}
+	}
+}
+
+void AMultiplayerCharacter::AttachWeapon(ASM_WeaponBase* WeaponCreated)
+{
+	WeaponCreated->SetOwner(this);
+
+	FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules(EAttachmentRule::KeepRelative, true);
 	
+	WeaponCreated->MeshFPP->AttachToComponent(MeshFP, AttachmentTransformRules, FName("head_r"));
+	WeaponCreated->MeshTPP->AttachToComponent(GetMesh(), AttachmentTransformRules, FName("head_r"));
+}
+
+void AMultiplayerCharacter::SimulatedPhysicsOnWeapon(ASM_WeaponBase* Weapon, bool bIsSimulate)
+{
+	ECollisionEnabled::Type Collision = bIsSimulate ? ECollisionEnabled::Type::QueryAndPhysics : ECollisionEnabled::Type::NoCollision;
+	Weapon->MeshTPP->SetCollisionEnabled(Collision);
+	Weapon->MeshTPP->SetSimulatePhysics(bIsSimulate);
+}
+
+void AMultiplayerCharacter::StopCurrentWeaponReload()
+{
+	if (AC_InventorySystem->CurrentWeapon)
+	{
+		if (AC_InventorySystem->CurrentWeapon->AM_FPP_ReloadWeapon)
+		{
+			MeshFP->GetAnimInstance()->Montage_Stop(0.3f, AC_InventorySystem->CurrentWeapon->AM_FPP_ReloadWeapon);
+		}
+	}
+}
+
+bool AMultiplayerCharacter::bIsUsingPrimary()
+{
+	return AC_InventorySystem->PrimaryWeapon == AC_InventorySystem->CurrentWeapon;
+}
+
+void AMultiplayerCharacter::OnRep_bIsShooting()
+{
+	if (bIsShooting)
+	{
+		// Firing
+	}
+}
+
+float AMultiplayerCharacter::CalculateMovementInput(float Input)
+{
+	float Output = 0.0f;
+	switch (MovementType)
+	{
+	case Walk:
+		Output = bIsCrouched ? 1.0f * Input : 0.625f * Input;
+		break;
+	case Run:
+		Output = 1.0f * Input;
+		break;
+	case Aim:
+		Output = bIsCrouched ? 1.0f * Input : 0.295f * Input;
+	}
+
+	return Output;
+}
+
+float AMultiplayerCharacter::ScaleAxisInput(float InputAxisValue)
+{
+	float Value = InputAxisValue > 0.0f ? FMath::Sqrt(FMath::Abs(FMath::Pow(InputAxisValue, 2) * GetMultiplier())) :
+			FMath::Sqrt(FMath::Abs(FMath::Pow(InputAxisValue, 2) * GetMultiplier())) * -1.0f;
+
+	return CalculateMovementInput(Value);
+}
+
+float AMultiplayerCharacter::GetMultiplier()
+{
+	// Refactor
+	return  0.0f;
+}
+
+void AMultiplayerCharacter::Ragdoll()
+{
+	if (this)
+	{
+		this->SetActorEnableCollision(true);
+		
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::PhysicsOnly);
+		GetMesh()->SetCollisionProfileName(FName("Pawn"), true);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->AddImpulse(UKismetMathLibrary::Normal(HitDirection, 0.0001f) * 5000.0f, HitBone, false);
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::Type::PhysicsOnly);
+	}
+}
+
+TSoftClassPtr<ASM_WeaponBase> AMultiplayerCharacter::GetRandomWeaponToSpawn()
+{
+	TSoftClassPtr<ASM_WeaponBase> WeaponToSpawn = nullptr;
+
+	WeaponToSpawn = Weapons[UKismetMathLibrary::RandomIntegerInRange(0, Weapons.Num() -1)];
+	
+	return WeaponToSpawn;
+}
+
+void AMultiplayerCharacter::GetMovementSpeed()
+{
+	if (AC_PawnInfo->GetAiming())
+	{
+		MovementType = Aim;
+	}
+	else
+	{
+		MovementType = Walk;
+	}
+
+	float WalkSpeed = 0.0f;
+
+	switch (MovementType)
+	{
+	case Walk:
+		WalkSpeed = GetCharacterMovement()->IsCrouching() ? 1.0f : 0.625f;
+		break;
+	case Run:
+		WalkSpeed = 1.0f;
+		break;
+	case Aim:
+		WalkSpeed = GetCharacterMovement()->IsCrouching() ? 1.0f : 0.295f;
+	}
+	
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed * 576.0f;
+}
+
+void AMultiplayerCharacter::AITryRun()
+{
+	AC_PawnInfo->SetRunning(FMath::Abs(GetCharacterMovement()->Velocity.Length()) > 300.0f);
+}
+
+void AMultiplayerCharacter::SetWeaponAnimBlueprints(ASM_WeaponBase* Weapon)
+{
+	MeshFP->LinkAnimClassLayers(Weapon->FPP_WeaponAnims);
+	GetMesh()->LinkAnimClassLayers(Weapon->TPP_WeaponAnims);
+}
+
+void AMultiplayerCharacter::EnableDamage()
+{
+	SetCanBeDamaged(true);
+}
+
+void AMultiplayerCharacter::PossessedBy(AController* NewController)
+{
+	FTimerHandle TimerHandle;
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUFunction(this, FName("EnableDamage"));
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
+
+	if (GetPlayerState()->IsABot())
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		PossessedEvent();
+		
+	}
+}
+
+void AMultiplayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	UpdateRun();
+	if (FMath::Abs(GetCharacterMovement()->Velocity.Z ) > 950.0f && bEnableFallDamage)
+	{
+		float Damage = (FMath::Abs(GetCharacterMovement()->Velocity.Z ) - 950.0f) / 2.0f;
+		UGameplayStatics::ApplyDamage(this, Damage, GetController(), this, FallDamage);
+	}
+}
+
+void AMultiplayerCharacter::UpdateRun()
+{
+	
+}
+
+void AMultiplayerCharacter::OnWalkingOffLedge_Implementation(const FVector& PreviousFloorImpactNormal,
+	const FVector& PreviousFloorContactNormal, const FVector& PreviousLocation, float TimeDelta)
+{
+	Super::OnWalkingOffLedge_Implementation(PreviousFloorImpactNormal, PreviousFloorContactNormal, PreviousLocation,
+	                                        TimeDelta);
+
+	UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->StopAllCameraShakes();
+}
+
+void AMultiplayerCharacter::OnJumped_Implementation()
+{
+	Super::OnJumped_Implementation();
+
+	UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->StopAllCameraShakes();
+}
+
+void AMultiplayerCharacter::OnBeginAiming()
+{
+	AC_PawnInfo->SetAiming(true);
+	MovementType = Aim;
+	StartBreathing();
+	
+	if (AC_InventorySystem->CurrentWeapon)
+	{
+		bCanRun = false;
+	}
+}
+
+void AMultiplayerCharacter::OnEndAiming()
+{
+	StopBreathing();
+	AC_PawnInfo->SetAiming(false);
+	MovementType = bWantsToRun ? Run : Walk;
+	bCanRun = true;
+	
+}
+
+void AMultiplayerCharacter::AimingTimelineUpdate(float FOVCurve)
+{
+	if (AC_InventorySystem->CurrentWeapon)
+	{
+		float FOV = FMath::Lerp(DefaultFOV, AC_InventorySystem->CurrentWeapon->AimingFOV, FOVCurve);
+		FollowCamera->SetFieldOfView(FOV);
+	}
+}
+
+void AMultiplayerCharacter::UpdateWeaponVisibility(bool bShowPrimary)
+{
+	SetWeaponVisibility(AC_InventorySystem->SecondaryWeapon, bShowPrimary);
+
+	SetWeaponVisibility(AC_InventorySystem->PrimaryWeapon, !bShowPrimary);	
+}
+
+void AMultiplayerCharacter::ReloadWeapon()
+{
+	Server_ReloadWeapon();
+}
+
+void AMultiplayerCharacter::ForceUncrouch()
+{
+	bWantToCrouch = false;
+	UnCrouch();
+	AC_PawnInfo->SetCrouching(false);
+	TryRun();
+}
+
+void AMultiplayerCharacter::ForceChangeWeapon(bool Primary, bool QuickChange)
+{
+	ChangeWeapon(Primary, QuickChange);
+}
+
+void AMultiplayerCharacter::ChangeWeapon(bool Primary, bool QuickChange)
+{
+	if (!AC_PawnInfo->GetUsingLethal())
+	{
+		bChangingWeapon = true;
+		StopShooting();
+		
+		if (!QuickChange)
+		{
+			UnequipWeapon();
+		}
+
+		ASM_WeaponBase* CurrentWeapon = Primary ? AC_InventorySystem->PrimaryWeapon : AC_InventorySystem->SecondaryWeapon;
+		AC_InventorySystem->SetCurrentWeapon(CurrentWeapon);
+
+		AC_InventorySystem->Server_SetCurrentWeapon(AC_InventorySystem->CurrentWeapon);
+
+		EquipWeaponMontage();
+	}
+}
+
+void AMultiplayerCharacter::UnequipWeapon()
+{
+}
+
+void AMultiplayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMultiplayerCharacter, bIsShooting);
+	DOREPLIFETIME(AMultiplayerCharacter, HitDirection);
+	DOREPLIFETIME(AMultiplayerCharacter, HitBone);
+	//DOREPLIFETIME(AMultiplayerCharacter, bIsShooting);
+}
+
+void AMultiplayerCharacter::Server_OnPickupWeapon_Implementation(TSubclassOf<ASM_WeaponBase> WeaponClass, int32 Ammo)
+{
+	AC_InventorySystem->Server_DropWeapon();
+
+	AC_InventorySystem->EquipWeapon(WeaponClass, bIsUsingPrimary(), FName("hand_r"), MeshFP, GetMesh(), Ammo);
+
+	if (bIsUsingPrimary())
+	{
+		AC_InventorySystem->SetCurrentWeapon(AC_InventorySystem->PrimaryWeapon);
+	}
+	else
+	{
+		AC_InventorySystem->SetCurrentWeapon(AC_InventorySystem->SecondaryWeapon);
+	}
+
+	UpdateArmsVisibility();
+}
+
+void AMultiplayerCharacter::EquipWeaponMontage_Implementation()
+{
+}
+
+void AMultiplayerCharacter::FPPUnequipWeaponMontage_Implementation()
+{
+}
+
+void AMultiplayerCharacter::Client_ForceChangeWeapon_Implementation(bool Primary, bool QuickChange)
+{
+	ForceChangeWeapon(Primary, QuickChange);
+}
+
+void AMultiplayerCharacter::PlayMontageReloadWeapon_Implementation(UAnimMontage* MontageToPlay)
+{
+}
+
+void AMultiplayerCharacter::Multicast_PlayReloadMontage_Implementation()
+{
+	if (!this->IsLocallyControlled())
+	{
+		if (AC_InventorySystem->CurrentWeapon)
+		{
+			PlayMontageReloadWeapon(AC_InventorySystem->CurrentWeapon->AM_TPP_ReloadWeapon);
+		}
+	}
+}
+
+void AMultiplayerCharacter::Server_PlayReloadAnimation_Implementation()
+{
+	Multicast_PlayReloadMontage();
+}
+
+void AMultiplayerCharacter::Server_ReloadWeapon_Implementation()
+{
+	bool bIsSuccess = false;
+	int32 AvailableAmmo = 0;
+	AC_InventorySystem->TryReload(bIsSuccess, AvailableAmmo);
+
+	if (bIsSuccess)
+	{
+		AC_InventorySystem->CurrentWeapon->ReloadWeapon(AvailableAmmo);
+		AC_InventorySystem->ReduceCurrentWeaponAmmo(AvailableAmmo);
+	}
+}
+
+void AMultiplayerCharacter::PlayMontageMeleeWeapon_Implementation(UAnimMontage* MontageToPlay)
+{
+}
+
+void AMultiplayerCharacter::Multicast_PlayMeleeMontage_Implementation()
+{
+	if (UGameplayStatics::GetPlayerPawn(GetWorld(), 0) != this)
+	{
+		if (AC_InventorySystem->CurrentWeapon)
+		{
+			PlayMontageMeleeWeapon(AC_InventorySystem->CurrentWeapon->AM_TPP_Melee);
+		}
+	}
+}
+
+void AMultiplayerCharacter::Server_PlayTPPMeleeAnimation_Implementation()
+{
+	Multicast_PlayMeleeMontage();
+}
+
+void AMultiplayerCharacter::ClientPlayHitMarkerSound_Implementation()
+{
+	
+}
+
+void AMultiplayerCharacter::Server_ApplyMeleeDamage_Implementation(AActor* DamagedActor,
+                                                                   ASM_PlayerControllerBase* CalledInstigator)
+{
+	UGameplayStatics::ApplyDamage(DamagedActor, 50.0f, this->GetController(), this,
+		AC_InventorySystem->CurrentWeapon->MeleeDamageType);
+
+	ClientPlayHitMarkerSound();
+}
+
+void AMultiplayerCharacter::AimingTimeline_Implementation()
+{
+	//BP
+}
+
+void AMultiplayerCharacter::PlayHitReactMontage_Implementation()
+{
+}
+
+
+void AMultiplayerCharacter::Multicast_PlayHitMontage_Implementation()
+{
+}
+
+void AMultiplayerCharacter::Client_SetMaxWalkSpeed_Implementation(float MaxWalkSpeed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
+}
+
+void AMultiplayerCharacter::StopBreathing_Implementation()
+{
+}
+
+void AMultiplayerCharacter::StartBreathing_Implementation()
+{
+}
+
+void AMultiplayerCharacter::PossessedEvent_Implementation()
+{
+	//BP
 }
 
 

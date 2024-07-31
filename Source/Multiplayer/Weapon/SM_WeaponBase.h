@@ -34,8 +34,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Deafult")
 	USkeletalMeshComponent* MeshTPP = nullptr;
-
-protected:
 	
 	UPROPERTY()
 	FOnAmmoChanged OnAmmoChanged;
@@ -111,9 +109,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Sound")
 	TSubclassOf<UCameraShakeBase> ImpactFleshSound = nullptr;
-
-public:
-	
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	int32 AmmoPerMag = 30;
 	
@@ -215,9 +211,7 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	TEnumAsByte<EEquippedWeapon> WeaponType = EEquippedWeapon::None;
-
-protected:
-	
+		
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Settings")
 	FTransform FPP_WeaponOffsetTransform;
 
@@ -240,10 +234,10 @@ protected:
 	bool bUseClientHitReg = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UAnimInstance* FPP_WeaponAnims = nullptr;
+	TSubclassOf<UAnimInstance> FPP_WeaponAnims = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	UAnimInstance* TPP_WeaponAnims = nullptr;
+	TSubclassOf<UAnimInstance> TPP_WeaponAnims = nullptr;
 
 public:
 	

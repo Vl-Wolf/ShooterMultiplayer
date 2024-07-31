@@ -15,9 +15,9 @@ void ASM_PlayerControllerBase::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	ACharacter* Character = Cast<ACharacter>(InPawn);
+	ACharacter* PossessedCharacter = Cast<ACharacter>(InPawn);
 
-	if (Character)
+	if (PossessedCharacter)
 	{
 		Client_SetInitialControlRotation(InPawn->GetActorRotation());
 	}
